@@ -1,6 +1,7 @@
 package com.example.demo.security;
 
 import static com.example.demo.security.Constants.*;
+import static org.springframework.security.config.Customizer.withDefaults;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,21 +35,14 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity httpSecurity) throws Exception {
-		/*
-		 * 1. Se desactiva el uso de cookies
-		 * 2. Se activa la configuración CORS con los valores por defecto
-		 * 3. Se desactiva el filtro CSRF
-		 * 4. Se indica que el login no requiere autenticación
-		 * 5. Se indica que el resto de URLs esten securizadas
-		 */
-		httpSecurity
-			.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-			.cors().and()
-			.csrf().disable()
-			.authorizeRequests().antMatchers(HttpMethod.POST, LOGIN_URL).permitAll()
-			.anyRequest().authenticated().and()
-				.addFilter(new JWTAuthenticationFilter(authenticationManager()))
-				.addFilter(new JWTAuthorizationFilter(authenticationManager()));
+        httpSecurity
+                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(withDefaults())
+                .csrf(csrf -> csrf.disable())
+                .authorizeRequests(requests -> requests.antMatchers(HttpMethod.POST, LOGIN_URL).permitAll()
+                        .anyRequest().authenticated())
+                .addFilter(new JWTAuthenticationFilter(authenticationManager()))
+                .addFilter(new JWTAuthorizationFilter(authenticationManager()));
 	}
 
 	@Override
